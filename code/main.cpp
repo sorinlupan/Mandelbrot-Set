@@ -1,74 +1,44 @@
-#include "ComplexPlane.h"
+// File: main.cpp
 #include <SFML/Graphics.hpp>
-#include <SFML/Audio.hpp>
-#include <iostream>     
-#include <complex>   
-#include <sstream>
-
-using namespace sf;
-using namespace std;
+#include "ComplexPlane.h"
+#include <iostream>
 
 int main() {
+    auto mode = sf::VideoMode::getDesktopMode();
+    int width = mode.width / 2, height = mode.height / 2;
 
-	int width = VideoMode::getDesktopMode().width / 2;
-	int height = VideoMode::getDesktopMode().height / 2;
+    sf::RenderWindow window(sf::VideoMode(width, height), "Mandelbrot Set");
+    ComplexPlane complexPlane(width, height);
 
-	RenderWindow window(VideoMode(width, height), "Complex Plane", Style::Default);
+    sf::Font font;
+    font.loadFromFile("arial.ttf");  // Ensure arial.ttf is in your working directory.
+    sf::Text text("", font, 14);
+    text.setPosition(10, 10);
 
-	ComplexPlane complexPlane(width, height);
+    while (window.isOpen()) {
+        sf::Event event;
+        while (window.pollEvent(event)) {
+            if (event.type == sf::Event::Closed)
+                window.close();
+            else if (event.type == sf::Event::MouseButtonPressed) {
+                if (event.mouseButton.button == sf::Mouse::Left)
+                    complexPlane.zoomIn();
+                else if (event.mouseButton.button == sf::Mouse::Right)
+                    complexPlane.zoomOut();
+            } else if (event.type == sf::Event::MouseMoved) {
+                complexPlane.setMouseLocation({event.mouseMove.x, event.mouseMove.y});
+            }
+        }
+		cout << "before Render" << endl;
+        complexPlane.updateRender();
+		cout << "after Render" << endl;
+        complexPlane.loadText(text);
 
-	sf::Font font;
-	if (!font.loadFromFile("Arial.ttf")) {
-		cout << "could not load font " << endl;
-		return -1;
-	}
-	sf::Text text;
-	text.setFont(font);
-	text.setCharacterSize(24);
-	text.setFillColor(sf::Color::Green);
-	text.setPosition(10, 10);
+        window.clear();
+        window.draw(complexPlane);
+        window.draw(text);
+        window.display();
+    }
 
-	while (window.isOpen())
-	{
-		Event event;
-		while (window.pollEvent(event))
-		{
-			if (event.type == Event::Closed)
-			{
-				// Quit the game when the window is closed
-				window.close();
-			}
-			if (event.type == sf::Event::MouseButtonPressed)
-			{
-				if (event.mouseButton.button == sf::Mouse::Left)
-				{
-					complexPlane.setCenter({ event.mouseButton.x, event.mouseButton.y });
-					complexPlane.zoomIn();
-				}
-				else if (event.mouseButton.button == sf::Mouse::Right)
-				{
-					complexPlane.setCenter({ event.mouseButton.x, event.mouseButton.y });
-					complexPlane.zoomOut();
-				}
-			}
-			if (event.type == sf::Event::MouseMoved) 
-			{
-				complexPlane.setMouseLocation({ event.mouseButton.x, event.mouseButton.y });
-			}
-			if (Keyboard::isKeyPressed(Keyboard::Escape)) {
-				window.close();
-			}
-			else 
-			{
-				complexPlane.updateRender();
-				complexPlane.loadText(text);
-
-				window.clear();
-				window.draw(complexPlane);
-				window.draw(text);
-				window.display();
-			}
-		}
-	}
+    return 0;
 }
-
