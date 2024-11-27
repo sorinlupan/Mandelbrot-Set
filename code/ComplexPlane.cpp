@@ -1,6 +1,7 @@
 // File: ComplexPlane.cpp
 #include "ComplexPlane.h"
 #include <iostream>
+#include <complex>
 using namespace std;
 
 ComplexPlane::ComplexPlane(int pixelWidth, int pixelHeight)
@@ -14,26 +15,39 @@ ComplexPlane::ComplexPlane(int pixelWidth, int pixelHeight)
 void ComplexPlane::draw(sf::RenderTarget& target, sf::RenderStates states) const {
     target.draw(m_vArray, states);
 }
-
 void ComplexPlane::updateRender() {
     if (m_State == State::CALCULATING) {
-        for (int i = 0; i < m_vArray.getVertexCount(); ++i) {
-            int x = i % static_cast<int>(m_plane_size.x);
-            int y = i / static_cast<int>(m_plane_size.x);
-
-            sf::Vector2f coords = mapPixelToCoords({x, y});
-            size_t iterations = countIterations(coords);
-
-            sf::Uint8 r, g, b;
-            iterationsToRGB(iterations, r, g, b);
-
-            m_vArray[i].position = {static_cast<float>(x), 
-                                    static_cast<float>(y)};
-            m_vArray[i].color = sf::Color(r, g, b);
+        // resize array if needed
+        if (m_vArray.getVertexCount() != static_cast<size_t>(m_plane_size.x * m_plane_size.y)) {
+            m_vArray.resize(static_cast<size_t>(m_plane_size.x * m_plane_size.y));
         }
+
+        for (int i = 0; i < static_cast<int>(m_plane_size.y); ++i) {
+            for (int j = 0; j < static_cast<int>(m_plane_size.x); ++j) {
+                //calculate index
+                size_t index = j + i * static_cast<size_t>(m_plane_size.x);
+
+                //map pixel to complex coordinates
+                sf::Vector2f coords = mapPixelToCoords({j, i});
+
+                //calc mandelbrot iterations
+                size_t iterations = countIterations(coords);
+
+                //iterations to RGB
+                sf::Uint8 r, g, b;
+                iterationsToRGB(iterations, r, g, b);
+
+                //set vertex position and color
+                m_vArray[index].position = {static_cast<float>(j), static_cast<float>(i)};
+                m_vArray[index].color = sf::Color(r, g, b);
+            }
+        }
+
+        // Update state to displaying
         m_State = State::DISPLAYING;
     }
 }
+
 
 void ComplexPlane::zoomIn() {
     m_zoomCount++;

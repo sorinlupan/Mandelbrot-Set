@@ -29,9 +29,7 @@ int main() {
                 complexPlane.setMouseLocation({event.mouseMove.x, event.mouseMove.y});
             }
         }
-		cout << "before Render" << endl;
         complexPlane.updateRender();
-		cout << "after Render" << endl;
         complexPlane.loadText(text);
 
         window.clear();
