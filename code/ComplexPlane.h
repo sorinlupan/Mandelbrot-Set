@@ -22,14 +22,14 @@ public:
     void setCenter(sf::Vector2i mousePixel);
     void setMouseLocation(sf::Vector2i mousePixel);
     void loadText(sf::Text& text);
-
+	void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 private:
-    virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 
     sf::VertexArray m_vArray;
     sf::Vector2f m_plane_center;
     sf::Vector2f m_plane_size;
     sf::Vector2f m_mouseLocation;
+	sf::Vector2i m_pixel_size;
     int m_zoomCount;
     float m_aspectRatio;
     State m_State;

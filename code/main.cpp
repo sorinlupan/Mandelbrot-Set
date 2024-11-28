@@ -1,4 +1,3 @@
-// File: main.cpp
 #include <SFML/Graphics.hpp>
 #include "ComplexPlane.h"
 #include <iostream>
@@ -11,7 +10,7 @@ int main() {
     ComplexPlane complexPlane(width, height);
 
     sf::Font font;
-    font.loadFromFile("arial.ttf");  // Ensure arial.ttf is in your working directory.
+    font.loadFromFile("arial.ttf");
     sf::Text text("", font, 14);
     text.setPosition(10, 10);
 

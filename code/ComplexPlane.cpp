@@ -1,26 +1,25 @@
-// File: ComplexPlane.cpp
 #include "ComplexPlane.h"
 #include <iostream>
-#include <complex>
 using namespace std;
 
-ComplexPlane::ComplexPlane(int pixelWidth, int pixelHeight)
-    : m_vArray(sf::Points, pixelWidth * pixelHeight),
-      m_plane_center(0, 0),
-      m_plane_size(BASE_WIDTH, BASE_HEIGHT * (pixelHeight / static_cast<float>(pixelWidth))),
-      m_zoomCount(0),
-      m_State(State::CALCULATING),
-      m_aspectRatio(static_cast<float>(pixelHeight) / pixelWidth) {}
+ComplexPlane::ComplexPlane(int pixelWidth, int pixelHeight) {
+    m_pixel_size = { pixelWidth, pixelHeight };
+    m_aspectRatio = static_cast<float>(pixelHeight) / pixelWidth;
+    m_plane_center = { 0, 0 };
+    m_plane_size = { BASE_WIDTH, BASE_HEIGHT * m_aspectRatio };
+    m_zoomCount = 0;
+    m_State = State::CALCULATING;
+    m_vArray.setPrimitiveType(sf::Points);
+    m_vArray.resize(pixelWidth * pixelHeight);
+}
 
 void ComplexPlane::draw(sf::RenderTarget& target, sf::RenderStates states) const {
-    target.draw(m_vArray, states);
+    target.draw(m_vArray);
 }
 void ComplexPlane::updateRender() {
     if (m_State == State::CALCULATING) {
-        // resize array if needed
-        if (m_vArray.getVertexCount() != static_cast<size_t>(m_plane_size.x * m_plane_size.y)) {
-            m_vArray.resize(static_cast<size_t>(m_plane_size.x * m_plane_size.y));
-        }
+        
+        m_vArray.resize(static_cast<size_t>(m_plane_size.x * m_plane_size.y));
 
         for (int i = 0; i < static_cast<int>(m_plane_size.y); ++i) {
             for (int j = 0; j < static_cast<int>(m_plane_size.x); ++j) {
@@ -77,21 +76,31 @@ void ComplexPlane::setMouseLocation(sf::Vector2i mousePixel) {
 void ComplexPlane::loadText(sf::Text& text) {
     ostringstream ss;
     ss << "Center: (" << m_plane_center.x << ", " << m_plane_center.y << ")\n";
-    ss << "Mouse: (" << m_mouseLocation.x << ", " << m_mouseLocation.y << ")";
+    ss << "Mouse: (" << m_mouseLocation.x << ", " << m_mouseLocation.y << ")\n";
+    ss << "Left-click to zoom in" << endl;
+    ss << "Right-click to zoom out" << endl;
     text.setString(ss.str());
 }
 
 sf::Vector2f ComplexPlane::mapPixelToCoords(sf::Vector2i pixel) const {
+   /*
     return {
         (pixel.x / m_plane_size.x) * m_plane_size.x + m_plane_center.x - m_plane_size.x / 2.0f,
         (pixel.y / m_plane_size.y) * m_plane_size.y + m_plane_center.y - m_plane_size.y / 2.0f
     };
+    */
+    float offsetX = m_plane_center.x - m_plane_size.x / 2.0f;
+    float offsetY = m_plane_center.y - m_plane_size.y / 2.0f;
+    float x = static_cast<float>(pixel.x) / m_pixel_size.x * m_plane_size.x,
+    float y = static_cast<float>(pixel.y - m_pixel_size.y) / (0 - m_pixel_size.y) * m_plane_size.y;
+    sf::Vector2f mapped = { (x + offsetX), (y + offsetY) };
+    return mapped;
 }
 
 size_t ComplexPlane::countIterations(sf::Vector2f coord) const {
     complex<float> c(coord.x, coord.y), z(0, 0);
     size_t count = 0;
-    while (abs(z) < 2.0f && count < MAX_ITER) {
+    while (abs(z) <= 4 && count < MAX_ITER) {
         z = z * z + c;
         count++;
     }
@@ -99,11 +108,10 @@ size_t ComplexPlane::countIterations(sf::Vector2f coord) const {
 }
 
 void ComplexPlane::iterationsToRGB(size_t count, sf::Uint8& r, sf::Uint8& g, sf::Uint8& b) const {
-    if (count == MAX_ITER) {
-        r = g = b = 0;
-    } else {
-        r = (count * 9) % 256;
-        g = (count * 7) % 256;
-        b = (count * 11) % 256;
+    if (count == MAX_ITER) { r = 0, g = 0, b = 0; }
+    else if (count < 5) { r = 5, g = 5, b = 5;}
+    else {
+        float norm = static_cast<float>(count) / MAX_ITER;
+        r = 255 * norm, g = 255 * norm, b = 255 * norm;
     }
 }
