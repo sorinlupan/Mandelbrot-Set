@@ -1,41 +1,96 @@
-#include <SFML/Graphics.hpp>
 #include "ComplexPlane.h"
-#include <iostream>
+#include <SFML/Audio.hpp>
+#include <iostream> // debug
 
-int main() {
-    auto mode = sf::VideoMode::getDesktopMode();
-    int width = mode.width / 2, height = mode.height / 2;
+using namespace std;
 
-    sf::RenderWindow window(sf::VideoMode(width, height), "Mandelbrot Set");
-    ComplexPlane complexPlane(width, height);
+int main()
+{
+
+    VideoMode vm(VideoMode::getDesktopMode().width, VideoMode::getDesktopMode().height);
+
+    RenderWindow window(vm, "Mandelbrot!", Style::Default);
+    ComplexPlane mandelbrot(VideoMode::getDesktopMode().width, VideoMode::getDesktopMode().height);
 
     sf::Font font;
-    font.loadFromFile("arial.ttf");
-    sf::Text text("", font, 14);
-    text.setPosition(10, 10);
+    sf::Text text;
+    text.setFont(font);
+    if (!font.loadFromFile("arial.ttf"))
+        throw runtime_error("Could not find font");
 
-    while (window.isOpen()) {
-        sf::Event event;
-        while (window.pollEvent(event)) {
-            if (event.type == sf::Event::Closed)
+    text.setCharacterSize(24);
+    text.setFillColor(sf::Color::White);
+    text.setStyle(sf::Text::Bold);
+
+
+
+    while (window.isOpen())
+    {
+        Event event;
+        while (window.pollEvent(event))
+        {
+            if (event.type == Event::Closed)
+            {
                 window.close();
-            else if (event.type == sf::Event::MouseButtonPressed) {
+            }
+            
+            if (event.type == sf::Event::MouseButtonPressed)
+            {
+                if (event.mouseButton.button == sf::Mouse::Right)
+                {
+                    //Zoom Out
+                    //mandelbrot.zoomOut();
+                    //setCenter
+                    Vector2i zO = {event.mouseButton.x, event.mouseButton.y};
+                    //cout << "DEBUG: zo (" << zO.x << ", " << zO.y << ")" << endl;
+                    mandelbrot.setCenter(zO);
+                    mandelbrot.zoomOut();
+                }
+
                 if (event.mouseButton.button == sf::Mouse::Left)
-                    complexPlane.zoomIn();
-                else if (event.mouseButton.button == sf::Mouse::Right)
-                    complexPlane.zoomOut();
-            } else if (event.type == sf::Event::MouseMoved) {
-                complexPlane.setMouseLocation({event.mouseMove.x, event.mouseMove.y});
+                {
+                    //Zoom In
+                    //mandelbrot.zoomIn();
+                    //setCenter
+                    Vector2i zI = {event.mouseButton.x, event.mouseButton.y};
+                    //cout << "DEBUG: zi (" << zI.x << ", " << zI.y << ")" << endl;
+                    mandelbrot.setCenter(zI);
+                    mandelbrot.zoomIn();
+                }
+            }
+
+            if (event.type == sf::Event::MouseMoved)
+            {
+                //setMouseLocation
+                Vector2i mm = {sf::Mouse::getPosition(window).x, sf::Mouse::getPosition(window).y};
+                //std::cout << "DEBUG: MM: (" << mm.x << ", " << mm.y << ")" << endl;
+                mandelbrot.setMouseLocation(mm);
             }
         }
-        complexPlane.updateRender();
-        complexPlane.loadText(text);
 
+        if (Keyboard::isKeyPressed(Keyboard::Escape))
+        {
+            window.close();
+        }
+
+        //Update Scene
+            //UpdateRender
+            //LoadText
+
+        mandelbrot.updateRender();
+        mandelbrot.loadText(text);
+
+
+        //Draw
+            //Clear RenderWindow
+            //ComplexPlane
+            //Text
+            //Display RenderWindow
         window.clear();
-        window.draw(complexPlane);
+        //window.draw(mandelbrot);
+        mandelbrot.draw(window, sf::RenderStates::Default);
         window.draw(text);
-        window.display();
+        window.display(); // ?
     }
-
     return 0;
 }
