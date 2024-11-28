@@ -3,21 +3,16 @@
 using namespace std;
 
 ComplexPlane::ComplexPlane(int pixelWidth, int pixelHeight) {
-    m_pixel_size.x = pixelWidth;
-    m_pixel_size.y = pixelHeight;
-    //cout << "DEBUG: Constructor: pixel size x: " << m_pixel_size.x << "; y: " << m_pixel_size.y << endl;
-
-    m_aspectRatio = (1.0*pixelHeight)/pixelWidth;
-
-    m_plane_center = {0, 0};
-    m_plane_size = {BASE_WIDTH, BASE_HEIGHT*m_aspectRatio};
-    //cout << "DEBUG: Constructor: planesize: " << BASE_WIDTH << ", " << BASE_HEIGHT << "*" << m_aspectRatio << endl;
+    m_pixel_size = { pixelWidth, pixelHeight };
+    m_aspectRatio = static_cast<float>(pixelHeight) / pixelWidth;
+    m_plane_center = { 0, 0 };
+    m_plane_size = { BASE_WIDTH, BASE_HEIGHT * m_aspectRatio };
     m_zoomCount = 0;
     m_state = State::CALCULATING;
-
-    m_vArray.setPrimitiveType(Points);
+    m_vArray.setPrimitiveType(sf::Points);
     m_vArray.resize(pixelWidth * pixelHeight);
 }
+
 
 void ComplexPlane::draw(RenderTarget& target, RenderStates states) const {
     target.draw(m_vArray, states);
@@ -96,7 +91,6 @@ void ComplexPlane::setMouseLocation(Vector2i mousePixel) {
 }
 
 void ComplexPlane::loadText(Text& text) {
-    //std::cout << "DEBUG: text loading" << endl;
     // stringstream
     std::stringstream testss;
     //std::string tests;
@@ -125,29 +119,15 @@ size_t ComplexPlane::countIterations(Vector2f coord) {
     }
     
     
-    
-
-    // burning ship
-    /*
     c = -c;
     while (std::norm(z) < 4.0 && i < MAX_ITER) {
         std::complex<float> more(abs(z.real()), abs(z.imag()));
         z = more*more + c;
         i++;
     }
-    */
 
-    // messing around
-    /*
-    z = 0;
-    while (std::norm(z) < 4.0 && i < MAX_ITER) {
-        //std::complex<float> ma(z.real()+abs(z.imag()), z.imag());
-        std::complex<float> ma(z.real()*z.real(), z.imag()*z.imag());
-        std::complex<float> one(1.0, 0.0);
-        z = z*z*z / (one+ma) + c;
-        i++;
-    }
-    */
+
+   
 
 
     return i;
@@ -183,39 +163,15 @@ void ComplexPlane::iterationsToRGB(size_t count, Uint8& r, Uint8& g, Uint8& b) {
 }
 
 Vector2f ComplexPlane::mapPixelToCoords(Vector2i mousePixel) {
-    // gug
-    // okk sooo this maps... mousePixel to a Vector2f.... okkkkkkk
-    // i think this is on click?
-    // ((n  - a) / (b - a)) * (d - c) + c
-    // sooooo
-    // ughhhhh
-    //cout << "DEBUG: In mapPixel" << endl;
-    float debugX, debugY;
-    // need to figure out how to get width and height of the screen
-
-    /*
-    debugX = ((mousePixel.x - 0) / (VideoMode::getDesktopMode().width - 0)) * (m_plane_size.x) +
-             (m_plane_center.x - m_plane_size.x / 2.0);
-    debugY = ((mousePixel.y - 0) / (VideoMode::getDesktopMode().height - 0)) * (m_plane_size.y) +
-             (m_plane_center.y - m_plane_size.y / 2.0);
-    */
-
-    /*
-    debugX = m_plane_center.x + ((float)mousePixel.x / m_pixel_size.x - 0.5) * m_plane_size.x;
-    debugY = m_plane_center.y + ((float)mousePixel.y / (m_pixel_size.y - 0.5)) * m_plane_size.y;
-    */
-
     
+    float debugX, debugY;
     float lowX = m_plane_center.x - m_plane_size.x / 2.0;
     float lowY = m_plane_center.y - m_plane_size.y / 2.0;
 
     debugX =  ((float)mousePixel.x / m_pixel_size.x)                        * (m_plane_size.x) + lowX;
     debugY = (((float)mousePixel.y - m_pixel_size.y) / (0-m_pixel_size.y))  * (m_plane_size.y) + lowY;
     //cout << "DEBUG: MP: " << (float)mousePixel.y - m_pixel_size.y << " / " << 0-m_pixel_size.y << endl;
-    //cout << "* " << m_plane_size.y << " + " << lowY << endl;
     
-
     Vector2f ret = {debugX, debugY};
-    //cout << "DEBUG: mapPixel ending" << endl;
     return ret;
 }
